@@ -27,6 +27,7 @@ import { QuotaHeader } from './components/QuotaHeader';
 import { QuotaCard } from './components/QuotaCard';
 import { QuotaTimeline } from './components/QuotaTimeline';
 import { QuotaLedger, QuotaSummaryStrip } from './components/QuotaLedger';
+import { RoutingInsights } from './components/RoutingInsights';
 import {
   CARD_ENTRANCE_BUDGET_MS,
   QUOTA_PAGE_SIZE,
@@ -510,6 +511,13 @@ export function QuotaPage() {
           quotaFor={getQuota}
           displayNameFor={displayNameFor}
           resolvedTheme={resolvedTheme}
+        />
+
+        <RoutingInsights
+          key={sessionGeneration}
+          files={files}
+          provider={tab}
+          disabled={disableControls}
         />
       </section>
     </div>
