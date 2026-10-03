@@ -10,6 +10,8 @@ import {
   CPA_BUILD_DATE_HEADER_KEYS,
   CPA_SUPPORT_PLUGIN_HEADER_KEYS,
   CPA_VERSION_HEADER_KEYS,
+  MANAGEMENT_API_PREFIX,
+  MANAGEMENT_V8_API_PREFIX,
   REQUEST_TIMEOUT_MS,
   VERSION_HEADER_KEYS,
 } from '@/utils/constants';
@@ -188,6 +190,15 @@ class ApiClient {
    */
   async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response = await this.instance.get<T>(url, config);
+    return response.data;
+  }
+
+  async getManagementV8<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const serverBase = this.apiBase.slice(0, -MANAGEMENT_API_PREFIX.length);
+    const response = await this.instance.get<T>(
+      `${serverBase}${MANAGEMENT_V8_API_PREFIX}${url}`,
+      config
+    );
     return response.data;
   }
 
