@@ -26,14 +26,17 @@ import { ProviderTabs } from '@/features/authFiles/components/ProviderTabs';
 import { QuotaHeader } from './components/QuotaHeader';
 import { QuotaCard } from './components/QuotaCard';
 import { QuotaTimeline } from './components/QuotaTimeline';
+import { QuotaLedger, QuotaSummaryStrip } from './components/QuotaLedger';
 import { RoutingInsights } from './components/RoutingInsights';
 import {
   CARD_ENTRANCE_BUDGET_MS,
   QUOTA_PAGE_SIZE,
   QUOTA_SORT_MODES,
   QUOTA_TAB_ORDER,
+  QUOTA_VIEW_MODES,
   type QuotaSortMode,
   type QuotaTabId,
+  type QuotaViewMode,
 } from './constants';
 import {
   buildTabCounts,
@@ -74,6 +77,9 @@ export function QuotaPage() {
   const [tab, setTab] = useState<QuotaTabId>(() => readQuotaUiState()?.tab ?? 'all');
   const [sortMode, setSortMode] = useState<QuotaSortMode>(
     () => readQuotaUiState()?.sortMode ?? 'default'
+  );
+  const [viewMode, setViewMode] = useState<QuotaViewMode>(
+    () => readQuotaUiState()?.viewMode ?? 'ledger'
   );
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -199,6 +205,17 @@ export function QuotaPage() {
     setPage(1);
     writeQuotaUiState({ sortMode: next as QuotaSortMode });
   }, []);
+
+  const handleViewModeChange = useCallback((next: string) => {
+    setViewMode(next as QuotaViewMode);
+    writeQuotaUiState({ viewMode: next as QuotaViewMode });
+  }, []);
+
+  const viewOptions = useMemo(
+    () =>
+      QUOTA_VIEW_MODES.map((mode) => ({ value: mode, label: t(`quota_management.view_${mode}`) })),
+    [t]
+  );
 
   const sortOptions = useMemo(
     () =>
@@ -363,16 +380,35 @@ export function QuotaPage() {
               </button>
             )}
           </div>
-          <div className={styles.sort}>
-            <Select
-              value={sortMode}
-              options={sortOptions}
-              onChange={handleSortModeChange}
-              ariaLabel={t('quota_management.sort_label')}
-              size="sm"
-            />
+          <div className={styles.toolbarControls}>
+            <div className={styles.sort}>
+              <Select
+                value={viewMode}
+                options={viewOptions}
+                onChange={handleViewModeChange}
+                ariaLabel={t('quota_management.view_label')}
+                size="sm"
+              />
+            </div>
+            <div className={styles.sort}>
+              <Select
+                value={sortMode}
+                options={sortOptions}
+                onChange={handleSortModeChange}
+                ariaLabel={t('quota_management.sort_label')}
+                size="sm"
+              />
+            </div>
           </div>
         </div>
+
+        {viewMode === 'ledger' && !loading && !isEmpty && (
+          <QuotaSummaryStrip
+            entries={filteredEntries}
+            quotaFor={getQuota}
+            resolvedTheme={resolvedTheme}
+          />
+        )}
 
         {error && (
           <div className={styles.errorBanner} role="alert">
@@ -413,6 +449,15 @@ export function QuotaPage() {
                 </Button>
               )
             }
+          />
+        ) : viewMode === 'ledger' ? (
+          <QuotaLedger
+            entries={pageItems}
+            quotaFor={getQuota}
+            canRefresh={(entry) => canUseActions && !entry.file.disabled}
+            resettingName={resettingQuotaName}
+            onRefresh={(entry) => void refreshQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
+            onReset={(entry) => resetQuota(entry.file, QUOTA_ADAPTERS[entry.type])}
           />
         ) : (
           <div className={styles.grid}>

@@ -1431,7 +1431,18 @@
         "cooldown": "限流冷卻中",
         "unknown": "未知"
       }
-    }
+    },
+    "view_label": "檢視",
+    "view_ledger": "帳本",
+    "view_cards": "卡片",
+    "ledger_summary_label": "依提供商彙總的額度",
+    "ledger_credentials_one": "{{count}} 個憑證",
+    "ledger_credentials_other": "{{count}} 個憑證",
+    "ledger_of_capacity": "/ {{capacity}}%",
+    "ledger_no_reset": "無待重置",
+    "ledger_not_loaded": "尚未載入",
+    "ledger_empty": "暫無額度資料",
+    "ledger_loaded_coverage": "已載入 {{loaded}}/{{count}}"
   },
   "plugin_management": {
     "title": "插件管理",

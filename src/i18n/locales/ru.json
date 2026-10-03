@@ -1410,7 +1410,20 @@
         "cooldown": "Пауза из-за лимита запросов",
         "unknown": "Неизвестно"
       }
-    }
+    },
+    "view_label": "Вид",
+    "view_ledger": "Сводка",
+    "view_cards": "Карточки",
+    "ledger_summary_label": "Сводка квот по провайдерам",
+    "ledger_credentials_one": "{{count}} учётная запись",
+    "ledger_credentials_few": "{{count}} учётные записи",
+    "ledger_credentials_many": "{{count}} учётных записей",
+    "ledger_credentials_other": "{{count}} учётной записи",
+    "ledger_of_capacity": "из {{capacity}}%",
+    "ledger_no_reset": "Сброс не ожидается",
+    "ledger_not_loaded": "Ещё не загружено",
+    "ledger_empty": "Нет данных о квоте",
+    "ledger_loaded_coverage": "Загружено {{loaded}} из {{count}}"
   },
   "plugin_management": {
     "title": "Управление плагинами",
