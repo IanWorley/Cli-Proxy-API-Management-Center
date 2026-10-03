@@ -15,6 +15,12 @@ describe('visual config weighted routing strategy', () => {
     expect(parseRoutingStrategy(undefined)).toBe('round-robin');
   });
 
+  test('recognizes the soonest-quota-reset backend value', () => {
+    expect(parseRoutingStrategy('soonest-quota-reset')).toBe('soonest-quota-reset');
+    expect(parseRoutingStrategy('SoonestQuotaReset')).toBe('soonest-quota-reset');
+    expect(parseRoutingStrategy('sqr')).toBe('soonest-quota-reset');
+  });
+
   test('writes weighted-round-robin without coercing it to round-robin', () => {
     function Harness() {
       const visualConfig = useVisualConfig();

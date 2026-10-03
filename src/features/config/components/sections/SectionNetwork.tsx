@@ -123,7 +123,11 @@ export function SectionNetwork({
             <FieldShell
               label={t('config_management.visual.sections.network.routing_strategy')}
               labelId={routingStrategyLabelId}
-              hint={t('config_management.visual.sections.network.routing_strategy_hint')}
+              hint={
+                values.routingStrategy === 'soonest-quota-reset'
+                  ? t('config_management.visual.sections.network.strategy_soonest_quota_reset_hint')
+                  : t('config_management.visual.sections.network.routing_strategy_hint')
+              }
               hintId={routingStrategyHintId}
             >
               <Select
@@ -142,6 +146,12 @@ export function SectionNetwork({
                   {
                     value: 'fill-first',
                     label: t('config_management.visual.sections.network.strategy_fill_first'),
+                  },
+                  {
+                    value: 'soonest-quota-reset',
+                    label: t(
+                      'config_management.visual.sections.network.strategy_soonest_quota_reset'
+                    ),
                   },
                 ]}
                 id={`${routingStrategyLabelId}-select`}
