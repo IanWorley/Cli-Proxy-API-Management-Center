@@ -108,12 +108,22 @@ export function normalizeRoutingQuotaReport(payload: unknown): RoutingQuotaRepor
   const root = asRecord(payload);
   const accounts = Array.isArray(root.accounts) ? root.accounts : [];
   const decisions = Array.isArray(root.decisions) ? root.decisions : [];
+  const provider = asString(root.provider);
+  const model = asString(root.model);
   return {
     active: root.active === true,
     evaluatedAtMs: asInstant(root.evaluated_at),
+    provider,
+    model,
     staleAfterSeconds: asPositiveInteger(root.stale_after_seconds) ?? 0,
     accounts: accounts.map(normalizeAccount).filter((account) => account !== null),
-    decisions: decisions.map(normalizeDecision).filter((decision) => decision !== null),
+    decisions: decisions
+      .map(normalizeDecision)
+      .filter((decision) => decision !== null)
+      .filter(
+        (decision) =>
+          (!provider || decision.provider === provider) && (!model || decision.model === model)
+      ),
   };
 }
 

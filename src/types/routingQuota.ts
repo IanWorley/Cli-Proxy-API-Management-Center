@@ -58,6 +58,8 @@ export interface RoutingDecision {
 export interface RoutingQuotaReport {
   active: boolean;
   evaluatedAtMs: number | null;
+  provider: string;
+  model: string;
   staleAfterSeconds: number;
   accounts: RoutingQuotaAccount[];
   decisions: RoutingDecision[];

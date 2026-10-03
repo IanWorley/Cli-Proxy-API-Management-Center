@@ -40,6 +40,16 @@ const SECONDS_PER_MINUTE = 60;
 const MAX_SKIPPED_CANDIDATES_SHOWN = 3;
 const I18N = 'quota_management.routing';
 
+interface RoutingQuery {
+  provider: string;
+  model: string;
+}
+
+type ReportState =
+  | { kind: 'loading'; query: RoutingQuery }
+  | { kind: 'loaded'; query: RoutingQuery; report: RoutingQuotaReport }
+  | { kind: 'failed'; query: RoutingQuery; message: string };
+
 export interface RoutingInsightsProps {
   files: readonly AuthFileItem[];
   /** Quota tab id; `all` evaluates every provider. */
@@ -50,9 +60,7 @@ export interface RoutingInsightsProps {
 export function RoutingInsights({ files, provider, disabled }: RoutingInsightsProps) {
   const { t, i18n } = useTranslation();
   const now = useNow();
-  const [report, setReport] = useState<RoutingQuotaReport | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [reportState, setReportState] = useState<ReportState | null>(null);
   const [modelDraft, setModelDraft] = useState('');
   const [model, setModel] = useState('');
   // The report is fetched only while the panel is expanded.
@@ -60,26 +68,33 @@ export function RoutingInsights({ files, provider, disabled }: RoutingInsightsPr
   const requestRef = useRef(0);
 
   const providerFilter = provider === 'all' ? '' : provider;
+  const currentState =
+    !disabled && reportState?.query.provider === providerFilter && reportState.query.model === model
+      ? reportState
+      : null;
+  const report = currentState?.kind === 'loaded' ? currentState.report : null;
+  const loading = open && !disabled && (currentState === null || currentState.kind === 'loading');
+  const error = currentState?.kind === 'failed' ? currentState.message : '';
 
   const load = useCallback(async () => {
     const requestId = ++requestRef.current;
     if (disabled) {
-      setReport(null);
-      setLoading(false);
+      setReportState(null);
       return;
     }
-    setLoading(true);
-    setError('');
+    const query = { provider: providerFilter, model };
+    setReportState({ kind: 'loading', query });
     try {
-      const next = await routingQuotaApi.getStatus({ provider: providerFilter, model });
+      const next = await routingQuotaApi.getStatus(query);
       if (requestId !== requestRef.current) return;
-      setReport(next);
+      setReportState({ kind: 'loaded', query, report: next });
     } catch (err: unknown) {
       if (requestId !== requestRef.current) return;
-      setReport(null);
-      setError(err instanceof Error ? err.message : t(`${I18N}.load_failed`));
-    } finally {
-      if (requestId === requestRef.current) setLoading(false);
+      setReportState({
+        kind: 'failed',
+        query,
+        message: err instanceof Error ? err.message : t(`${I18N}.load_failed`),
+      });
     }
   }, [disabled, model, providerFilter, t]);
 
@@ -148,6 +163,12 @@ export function RoutingInsights({ files, provider, disabled }: RoutingInsightsPr
             {t(`${I18N}.refresh`)}
           </Button>
         </form>
+
+        {loading && (
+          <p className={styles.empty} role="status">
+            {t(`${I18N}.loading`)}
+          </p>
+        )}
 
         {report && (
           <p className={styles.fallbackNote}>
@@ -234,7 +255,9 @@ function AccountRow({ account, name, relative }: AccountRowProps) {
       <TableCell className={styles.rank}>{account.rank ? `#${account.rank}` : '—'}</TableCell>
       <TableCell>
         <div className={styles.account}>{name}</div>
-        <div className={styles.muted}>{account.provider}</div>
+        <div className={styles.muted}>
+          {account.provider} · {t(`${I18N}.priority`, { priority: account.priority })}
+        </div>
       </TableCell>
       <TableCell>
         <span className={account.eligible ? styles.badgeEligible : styles.badgeSkipped}>
@@ -272,12 +295,12 @@ function AccountRow({ account, name, relative }: AccountRowProps) {
         )}
       </TableCell>
       <TableCell>
-        {freshness === 'never' ? (
+        {account.observedAtMs === null ? (
           <span className={styles.unavailable}>{t(`${I18N}.freshness_never`)}</span>
         ) : (
           <span className={freshness === 'stale' ? styles.stale : undefined}>
             {t(`${I18N}.freshness_${freshness}`, {
-              time: relative(account.observedAtMs as number),
+              time: relative(account.observedAtMs),
             })}
           </span>
         )}

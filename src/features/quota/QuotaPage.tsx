@@ -513,7 +513,12 @@ export function QuotaPage() {
           resolvedTheme={resolvedTheme}
         />
 
-        <RoutingInsights files={files} provider={tab} disabled={disableControls} />
+        <RoutingInsights
+          key={sessionGeneration}
+          files={files}
+          provider={tab}
+          disabled={disableControls}
+        />
       </section>
     </div>
   );
