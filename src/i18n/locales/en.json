@@ -1354,7 +1354,8 @@
     "ledger_of_capacity": "of {{capacity}}%",
     "ledger_no_reset": "No reset pending",
     "ledger_not_loaded": "Not loaded yet",
-    "ledger_empty": "No quota data available"
+    "ledger_empty": "No quota data available",
+    "ledger_loaded_coverage": "{{loaded}} of {{count}} loaded"
   },
   "plugin_management": {
     "title": "Plugin Management",

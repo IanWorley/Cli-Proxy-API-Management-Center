@@ -150,6 +150,7 @@ export function QuotaSummaryStrip({ entries, quotaFor, resolvedTheme }: QuotaSum
     () =>
       groupByProvider(entries).map((group) => ({
         ...group,
+        loadedCount: group.entries.filter((entry) => quotaFor(entry)?.status === 'success').length,
         metrics: summarizeLedger(
           group.entries.map((entry) => buildLedgerMetrics(entry.type, quotaFor(entry))),
           now
@@ -170,8 +171,14 @@ export function QuotaSummaryStrip({ entries, quotaFor, resolvedTheme }: QuotaSum
           <header className={styles.summaryHead}>
             <ProviderIcon type={group.type} resolvedTheme={resolvedTheme} />
             <span className={styles.summaryProvider}>{getTypeLabel(t, group.type)}</span>
+            {/* Totals cover loaded credentials only; say so rather than imply full coverage. */}
             <span className={styles.summaryCount}>
-              {t('quota_management.ledger_credentials', { count: group.entries.length })}
+              {group.loadedCount < group.entries.length
+                ? t('quota_management.ledger_loaded_coverage', {
+                    loaded: group.loadedCount,
+                    count: group.entries.length,
+                  })
+                : t('quota_management.ledger_credentials', { count: group.entries.length })}
             </span>
           </header>
           {group.metrics.length === 0 ? (

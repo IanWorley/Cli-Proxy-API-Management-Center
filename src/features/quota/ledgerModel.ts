@@ -22,11 +22,10 @@ import type { QuotaProviderType } from './providers/types';
 /** Full capacity of a single limit, in percent. */
 export const FULL_PERCENT = 100;
 
-/** Limits at least this long are the provider-level headline in the summary strip. */
-export const SUMMARY_MIN_PERIOD_HOURS = 24;
+const HOURS_PER_WEEK = 24 * 7;
 
-/** Most limits a summary card shows, so a provider with many model buckets stays readable. */
-export const SUMMARY_MAX_METRICS = 3;
+/** Weekly-or-longer limits are the provider-level headline in the summary strip. */
+export const SUMMARY_MIN_PERIOD_HOURS = HOURS_PER_WEEK;
 
 export type LedgerLabel =
   { key: string; params?: Record<string, string | number> } | { text: string };
@@ -50,7 +49,7 @@ export interface LedgerSummaryMetric {
   remainingTotal: number | null;
   /** FULL_PERCENT for every credential that reports this limit. */
   capacity: number;
-  /** One entry per reporting credential, in credential order. */
+  /** One entry per credential, in credential order; null where it doesn't report this limit. */
   segments: (number | null)[];
   /** Soonest reset still in the future. */
   nextResetMs: number | null;
@@ -70,7 +69,6 @@ const labelOf = (
   params?: Record<string, string | number>
 ): LedgerLabel => (labelKey ? { key: labelKey, params } : { text: text ?? '' });
 
-const HOURS_PER_WEEK = 24 * 7;
 const MINUTES_PER_HOUR = 60;
 const MS_PER_SECOND = 1000;
 
@@ -166,7 +164,8 @@ export function buildLedgerMetrics(provider: QuotaProviderType, quota: unknown):
 /**
  * Roll one provider's credentials up into summary metrics.
  *
- * Limits are matched by id across credentials and keep first-seen order.
+ * Limits are matched by id across credentials and keep first-seen order;
+ * every eligible limit is returned, none is dropped to save space.
  * Only long-running limits headline the card — a 5-hour window summed across
  * a fleet says little about the week ahead — unless a provider has nothing
  * longer, in which case every limit is shown rather than an empty card.
@@ -177,19 +176,19 @@ export function summarizeLedger(
 ): LedgerSummaryMetric[] {
   const byId = new Map<string, LedgerSummaryMetric & { periodHours: number | null }>();
 
-  for (const metrics of metricsPerCredential) {
+  metricsPerCredential.forEach((metrics, credentialIndex) => {
     for (const metric of metrics) {
       const summary = byId.get(metric.id) ?? {
         id: metric.id,
         label: metric.label,
         remainingTotal: null,
         capacity: 0,
-        segments: [],
+        segments: metricsPerCredential.map(() => null),
         nextResetMs: null,
         periodHours: metric.periodHours,
       };
       summary.capacity += FULL_PERCENT;
-      summary.segments.push(metric.remaining);
+      summary.segments[credentialIndex] = metric.remaining;
       if (metric.remaining !== null) {
         summary.remainingTotal = (summary.remainingTotal ?? 0) + metric.remaining;
       }
@@ -202,15 +201,13 @@ export function summarizeLedger(
       }
       byId.set(metric.id, summary);
     }
-  }
+  });
 
   const all = [...byId.values()];
   const long = all.filter(
     (metric) => metric.periodHours === null || metric.periodHours >= SUMMARY_MIN_PERIOD_HOURS
   );
-  return (long.length > 0 ? long : all)
-    .slice(0, SUMMARY_MAX_METRICS)
-    .map(({ periodHours: _periodHours, ...metric }) => metric);
+  return (long.length > 0 ? long : all).map(({ periodHours: _periodHours, ...metric }) => metric);
 }
 
 /** The plan shown under a credential's name; null when the provider didn't say. */

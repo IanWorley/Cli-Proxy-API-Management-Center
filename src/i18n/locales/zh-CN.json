@@ -1352,7 +1352,8 @@
     "ledger_of_capacity": "/ {{capacity}}%",
     "ledger_no_reset": "无待重置",
     "ledger_not_loaded": "尚未加载",
-    "ledger_empty": "暂无额度数据"
+    "ledger_empty": "暂无额度数据",
+    "ledger_loaded_coverage": "已加载 {{loaded}}/{{count}}"
   },
   "plugin_management": {
     "title": "插件管理",

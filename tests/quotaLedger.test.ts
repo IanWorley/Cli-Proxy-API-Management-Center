@@ -60,3 +60,15 @@ describe('summarizeLedger', () => {
     expect(summary[1]).toMatchObject({ remainingTotal: 179, capacity: 200 });
   });
 });
+
+describe('summarizeLedger segments', () => {
+  test('keep one slot per credential, null where a credential lacks the limit', () => {
+    const weekly = buildLedgerMetrics('claude', claudeQuota(10, 20, 30)).filter(
+      (metric) => metric.id === 'seven-day'
+    );
+
+    const [summary] = summarizeLedger([[], weekly], NOW);
+
+    expect(summary).toMatchObject({ segments: [null, 80], capacity: 100 });
+  });
+});

@@ -1359,7 +1359,8 @@
     "ledger_of_capacity": "из {{capacity}}%",
     "ledger_no_reset": "Сброс не ожидается",
     "ledger_not_loaded": "Ещё не загружено",
-    "ledger_empty": "Нет данных о квоте"
+    "ledger_empty": "Нет данных о квоте",
+    "ledger_loaded_coverage": "Загружено {{loaded}} из {{count}}"
   },
   "plugin_management": {
     "title": "Управление плагинами",
