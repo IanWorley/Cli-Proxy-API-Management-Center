@@ -137,7 +137,7 @@ export const routingQuotaApi = {
     const params: Record<string, string> = {};
     if (provider?.trim()) params.provider = provider.trim();
     if (model?.trim()) params.model = model.trim();
-    const payload = await apiClient.get<unknown>(ROUTING_QUOTA_STATUS_PATH, { params });
+    const payload = await apiClient.getManagementV8<unknown>(ROUTING_QUOTA_STATUS_PATH, { params });
     return normalizeRoutingQuotaReport(payload);
   },
 };
