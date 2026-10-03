@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { normalizeRoutingQuotaReport } from '../src/services/api/routingQuota';
+import { apiClient } from '../src/services/api/client';
+import { normalizeRoutingQuotaReport, routingQuotaApi } from '../src/services/api/routingQuota';
 import {
   buildAuthNameIndex,
   freshnessState,
@@ -164,6 +165,31 @@ describe('routing quota report normalization', () => {
     expect(report.accounts[0].windows[0].remainingPercent).toBeNull();
     expect(report.accounts[0].windows[0].resetAtMs).toBeNull();
   });
+});
+
+test('fetches routing quota through v8 management with the configured key', async () => {
+  let requestedPath = '';
+  let authorization = '';
+  const server = Bun.serve({
+    port: 0,
+    fetch(request) {
+      requestedPath = new URL(request.url).pathname;
+      authorization = request.headers.get('Authorization') ?? '';
+      return Response.json({ active: true, accounts: [], decisions: [] });
+    },
+  });
+  try {
+    apiClient.setConfig({
+      apiBase: `http://127.0.0.1:${server.port}`,
+      managementKey: 'routing-test-key',
+    });
+    const report = await routingQuotaApi.getStatus({ provider: 'claude' });
+    expect(requestedPath).toBe('/v8/management/routing/quota-status');
+    expect(authorization).toBe('Bearer routing-test-key');
+    expect(report.active).toBe(true);
+  } finally {
+    server.stop(true);
+  }
 });
 
 describe('routing insights data states', () => {
