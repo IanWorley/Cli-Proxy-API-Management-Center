@@ -71,6 +71,69 @@ const account = (overrides: Partial<RoutingQuotaAccount>): RoutingQuotaAccount =
 });
 
 describe('routing quota report normalization', () => {
+  test('keeps decisions within the response provider and canonical model scope', () => {
+    const report = normalizeRoutingQuotaReport({
+      provider: 'claude',
+      model: 'sonnet',
+      decisions: [
+        {
+          at: '2026-10-02T11:58:00Z',
+          provider: 'claude',
+          model: 'sonnet',
+          selected_auth_index: 'matching',
+        },
+        {
+          at: '2026-10-02T11:57:00Z',
+          provider: 'codex',
+          model: 'sonnet',
+          selected_auth_index: 'other-provider',
+        },
+        {
+          at: '2026-10-02T11:56:00Z',
+          provider: 'claude',
+          model: 'opus',
+          selected_auth_index: 'other-model',
+        },
+      ],
+    });
+
+    expect(report.provider).toBe('claude');
+    expect(report.model).toBe('sonnet');
+    expect(report.decisions.map((decision) => decision.selectedAuthIndex)).toEqual(['matching']);
+  });
+
+  test('includes every model for a provider-only response', () => {
+    const report = normalizeRoutingQuotaReport({
+      provider: 'claude',
+      decisions: [
+        {
+          at: '2026-10-02T11:58:00Z',
+          provider: 'claude',
+          model: 'sonnet',
+          selected_auth_index: 'sonnet-account',
+        },
+        {
+          at: '2026-10-02T11:57:00Z',
+          provider: 'claude',
+          model: 'opus',
+          selected_auth_index: 'opus-account',
+        },
+        {
+          at: '2026-10-02T11:56:00Z',
+          provider: 'codex',
+          model: 'sonnet',
+          selected_auth_index: 'other-provider',
+        },
+      ],
+    });
+
+    expect(report.model).toBe('');
+    expect(report.decisions.map((decision) => decision.selectedAuthIndex)).toEqual([
+      'sonnet-account',
+      'opus-account',
+    ]);
+  });
+
   test('maps backend fields and drops entries without a safe identifier or known tier', () => {
     const report = normalizeRoutingQuotaReport(backendReport);
 
