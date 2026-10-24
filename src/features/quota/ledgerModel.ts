@@ -131,6 +131,7 @@ export function buildLedgerMetrics(provider: QuotaProviderType, quota: unknown):
       ];
     }
     case 'antigravity':
+    case 'plugin':
       return ((quota as AntigravityQuotaState).groups ?? [])
         .flatMap((group) => group.buckets ?? [])
         .map((bucket) => ({
@@ -229,7 +230,8 @@ export function ledgerPlanLabel(provider: QuotaProviderType, quota: unknown): Le
       return text((quota as DevinQuotaState).plan);
     case 'meta':
       return text((quota as MetaQuotaState).data?.planName);
-    case 'antigravity': {
+    case 'antigravity':
+    case 'plugin': {
       const subscription = (quota as AntigravityQuotaState).subscription;
       return text(subscription?.tierName ?? subscription?.plan);
     }
