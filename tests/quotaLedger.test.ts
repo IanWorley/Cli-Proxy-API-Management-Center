@@ -72,3 +72,38 @@ describe('summarizeLedger segments', () => {
     expect(summary).toMatchObject({ segments: [null, 80], capacity: 100 });
   });
 });
+
+describe('buildLedgerMetrics for plugin quota', () => {
+  test('reads plugin buckets the same way as antigravity groups', () => {
+    const pluginQuota = {
+      status: 'success',
+      summary: [],
+      groups: [
+        {
+          id: 'credits',
+          label: 'Credits',
+          buckets: [
+            {
+              id: 'monthly',
+              label: 'Monthly credits',
+              remainingFraction: 0.25,
+              resetAtMs: NOW + 48 * HOUR,
+              periodHours: 720,
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(buildLedgerMetrics('plugin', pluginQuota)).toEqual([
+      {
+        id: 'monthly',
+        label: { text: 'Monthly credits' },
+        remaining: 25,
+        resetAtMs: NOW + 48 * HOUR,
+        resetLabel: null,
+        periodHours: 720,
+      },
+    ]);
+  });
+});
